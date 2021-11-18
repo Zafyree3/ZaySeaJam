@@ -29,10 +29,16 @@ class player(object):
         self.width = 55
         self.height = 30
         self.vel = 5
-        self.hitbox = (x,y,x+self.width,y+self.height)
+        self.hitbox = (self.x,self.y,self.width,self.height)
 
     def draw(self):
         pygame.draw.rect(screen,(255, 94, 94),(self.x,self.y,self.width,self.height))
+
+    def drawHitbox(self):
+        pygame.draw.rect(screen,(255,0,0),self.hitbox)
+
+    def updateHitbox(self):
+        self.hitbox = (self.x,self.y,self.x+self.width,self.y+self.height)
 
 class item(object):
     def __init__(self,x,y,colour):
@@ -45,6 +51,7 @@ class item(object):
 
     def draw(self):
         pygame.draw.rect(screen,self.colour,(self.x,self.y,self.width,self.height))
+
 
 dock = block(70,460,140,40,(112, 78, 65))
 sand = block(0,0,100,500,(222, 194, 146))
@@ -62,13 +69,14 @@ def drawAll():
 
     # character
     user.draw()
+    #user.drawHitbox()
 
-    scoretext = font.render('Score: '+ str(score), True,(33, 69, 97),)
+    scoretext = font.render('Cash: $'+ str(cash), True,(33, 69, 97),)
     screen.blit(scoretext, (120,10))
 
     pygame.display.update()
 
-score = 0
+cash = 0
 font = pygame.font.SysFont('Poppins',20,True)
 user = player(400,250)
 running = True
@@ -76,16 +84,18 @@ itemTick = 0
 items = []
 while running:
     clock.tick(30)
+
     itemTick += 1
-    if itemTick == 90:
-        itemTick = 0
+    if itemTick % 90 == 0:
         items.append(item(r.randint(210,700),r.randint(10,430),(r.randint(0,255),r.randint(0,255),r.randint(0,255))))
 
     for i in items:
-        print(i.hitbox)
-        if i.hitbox[0] > user.hitbox[0] and i.hitbox[2] < user.hitbox[2]:
-            if i.hitbox[1] > user.hitbox[1] and i.hitbox[3] < user.hitbox[3]:
-                print('collide')
+        #print(i.hitbox, user.hitbox)
+        if (i.hitbox[0] >= user.hitbox[2]) or (i.hitbox[2] <= user.hitbox[0]) or (i.hitbox[1] >= user.hitbox[3]) or (i.hitbox[3] <= user.hitbox[1]):
+            pass
+        else:
+            cash += 1
+            items.pop(items.index(i))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -112,6 +122,7 @@ while running:
     if keys[pygame.K_d] and user.x < width - user.width:
         user.x += user.vel
 
+    user.updateHitbox()
     drawAll()
 
 pygame.quit()
